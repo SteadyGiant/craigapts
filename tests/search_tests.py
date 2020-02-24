@@ -3,7 +3,7 @@
 from search import CLSearch
 import sys
 
-sys.path.append(r"/home/evroot/Dropbox/Projects/badslist2/craigapts/craigapts")
+sys.path.append(r"/path/to/craigapts")
 
 GEO = "newjersey"
 QUERY = "'no section 8'"
