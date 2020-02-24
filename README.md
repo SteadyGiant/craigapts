@@ -19,7 +19,6 @@ pip install git+https://gitlab.com/everetr/craigapts.git
 ## Examples
 
 ```python3
-
 from craigapts import CLSearch
 
 GEO   = "newjersey"
@@ -32,7 +31,6 @@ print(c1.data)
 # get details by navigating to each individual ad
 c2 = CLSearch(GEO, QUERY, deep=True)
 print(c2.data)
-
 ```
 
 ## Changelog
@@ -43,6 +41,6 @@ print(c2.data)
 
 ## TODO
 
-* Add list of CL geographies
+* Replace `requests` dependency with `urllib3`? Because minimalism.
 * Let user specify which variables, how many pages, and how many ads to scrape
 * CLI
