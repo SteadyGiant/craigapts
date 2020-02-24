@@ -10,10 +10,6 @@ Stable version from PyPI:
 pip install craigapts
 ```
 
-```sh
-conda install -c everet craigapts
-```
-
 Dev version from GitLab:
 
 ```sh
