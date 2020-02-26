@@ -63,6 +63,7 @@ class CLSearch:
         self.reqc = None
         self.soup = None
         self.data = []
+        self.timestamp_search = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         self.__scrape_all_pages()
 
@@ -117,8 +118,7 @@ class CLSearch:
 
         if self.deep:
             # attrs: misc attributes listed on the side of an ad
-            cols_ads = ["link", "addr", "baths", "attrs", "post_id",
-                        "datetime_scr"]
+            cols_ads = ["link", "addr", "baths", "attrs", "post_id"]
             if self.body:
                 cols_ads.append("body")
             data_ads = []
@@ -133,8 +133,7 @@ class CLSearch:
                                          pat=bw_rgx.format("/ ", "Ba"))[0],
                     self.__get_info_from(".attrgroup:nth-child(3) span")[0],
                     self.__get_info_from(".postinginfo:nth-child(1)",
-                                         pat=r"\d+")[0],
-                    self.__get_datetime()
+                                         pat=r"\d+")[0]
                     ]
                 if self.body:
                     dta_ad.append(
@@ -143,8 +142,6 @@ class CLSearch:
                 data_ads.append(dta_ad)
             df_ads = pd.DataFrame(data_ads, columns=cols_ads)
             df_pg = pd.merge(df_pg, df_ads, how="left", on="link")
-        else:
-            df_pg["datetime_scr"] = self.__get_datetime()
         # append page"s DataFrame to instance"s `data` list
         self.data.append(df_pg)
 
@@ -218,7 +215,8 @@ class CLSearch:
 
         `data` attribute is a list of DataFrames, one for each page of search
         results. Concatenate them into one big DF. Convert certain variables to
-        numeric.
+        numeric. Add the search timestamp (datetime at which search was
+        initiated).
         """
         self.data = pd.concat(self.data)
         self.data["rent"].replace(regex=r"\$", value="", inplace=True)
@@ -227,10 +225,7 @@ class CLSearch:
             num.intersection(self.data.columns)
             )
         self.data[num] = self.data[num].apply(pd.to_numeric, errors="coerce")
-
-    @staticmethod
-    def __get_datetime():
-        return datetime.now().strftime("%Y-%m-%d %H:%M")
+        self.data["timestamp_search"] = self.timestamp_search
 
 
 if __name__ == "__main__":
