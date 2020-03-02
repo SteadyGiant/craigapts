@@ -115,10 +115,12 @@ class CLSearch:
                                          pat=bw_rgx.format(r"\(", r"\)"))
             })[:n_ads]
 
+        df_pg["post_id"] = pd.Series(findall("\\d+(?=\\.html)", L)[0]
+                                     for L in df_pg.link)
+
         if self.deep:
             # attrs: misc attributes listed on the side of an ad
-            cols_ads = ["link", "addr", "baths", "attrs", "post_id",
-                        "datetime_scr"]
+            cols_ads = ["link", "addr", "baths", "attrs", "datetime_scr"]
             if self.body:
                 cols_ads.append("body")
             data_ads = []
@@ -132,8 +134,6 @@ class CLSearch:
                     self.__get_info_from(".shared-line-bubble:nth-child(1)",
                                          pat=bw_rgx.format("/ ", "Ba"))[0],
                     self.__get_info_from(".attrgroup:nth-child(3) span")[0],
-                    self.__get_info_from(".postinginfo:nth-child(1)",
-                                         pat=r"\d+")[0],
                     self.__get_datetime()
                     ]
                 if self.body:
@@ -227,6 +227,10 @@ class CLSearch:
             num.intersection(self.data.columns)
             )
         self.data[num] = self.data[num].apply(pd.to_numeric, errors="coerce")
+        # rearrange columns
+        cols_1st = ["post_id", "datetime_scr"]
+        cols_last = self.data.drop(cols_1st, axis="columns").columns.tolist()
+        self.data = self.data[cols_1st + cols_last]
 
     @staticmethod
     def __get_datetime():
