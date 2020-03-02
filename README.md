@@ -35,6 +35,13 @@ print(c2.data)
 
 ## Changelog
 
+2020.2.23.1.9000
+
+* Scraper now gets ads' post IDs from ad URLs. Before, a deep scrape was
+required to get post IDs.
+
+* Data columns are rearranged so `post_id` and `datetime_scr` appear first.
+
 2020.2.23.1
 
 * First release.
