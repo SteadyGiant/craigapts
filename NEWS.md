@@ -1,6 +1,6 @@
 # NEWS
 
-2020.3.6.9002
+2020.3.7.1
 
 * Scraper now removes duplicate ads and avoids unnecessary requests. `post_id`
 is now the primary key in `CLSearch.data`.
