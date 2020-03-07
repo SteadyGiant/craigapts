@@ -189,6 +189,7 @@ class CLSearch:
         """Go to next results page."""
         self.url = self.next_page_url
         self.__navigate()
+        self.__find_next_page()
 
     def __navigate(self):
         """Navigate the scraper.
@@ -204,7 +205,6 @@ class CLSearch:
             print(f"Parsing {self.url}\n")
             self.reqc = r.content
             self.soup = BeautifulSoup(self.reqc, "html.parser")
-            self.__find_next_page()
             sleep(1 + uniform(1, 5))  # be polite
 
     def __build_url(self, suffix):

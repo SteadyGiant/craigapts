@@ -35,7 +35,7 @@ print(c2.data)
 
 ## Changelog
 
-2020.2.23.1.9000
+2020.2.23.1.9001
 
 * Scraper now gets ads' post IDs from ad URLs. Before, a deep scrape was
 required to get post IDs.

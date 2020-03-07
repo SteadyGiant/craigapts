@@ -18,7 +18,7 @@ URL = 'https://gitlab.com/everetr/craigapts'
 EMAIL = ''
 AUTHOR = 'Everet Rummel'
 REQUIRES_PYTHON = '>=3.7.0'
-VERSION = '2020.2.23.1'
+VERSION = '2020.2.23.1.9001'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
