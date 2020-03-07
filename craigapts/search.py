@@ -54,16 +54,18 @@ class CLSearch:
         Navigates to the first page of search results.
         """
         self.geo = geo
-        self.board = "apa"
         self.deep = deep
         self.body = body
+
         self.url = None
-        self.next_page_url = self.__build_url(
-            f"/search/{self.board}?query={query}&bundleDuplicates=1")
         self.reqc = None
         self.soup = None
+        self.__post_ids = set()
         self.data = []
+        self.next_page_url = self.__build_url(
+            f"/search/apa?query={query}&bundleDuplicates=1")
 
+        # start scraper
         self.__scrape_all_pages()
 
     # scraping methods
@@ -114,13 +116,18 @@ class CLSearch:
             "hood": self.__get_info_from(".result-meta",
                                          pat=bw_rgx.format(r"\(", r"\)"))
             })[:n_ads]
-
-        df_pg["post_id"] = pd.Series(findall("\\d+(?=\\.html)", L)[0]
-                                     for L in df_pg.link)
+        df_pg["post_id"] = pd.Series(
+            findall("\\d+(?=\\.html)", L)[0]
+            for L in df_pg.link
+            )
+        # Remove ads already scraped.
+        # Even adding `bundleDuplicates=1` to the search URLs won't eliminate
+        # all dupes.
+        df_pg = df_pg[~df_pg.post_id.isin(self.__post_ids)]
 
         if self.deep:
             # attrs: misc attributes listed on the side of an ad
-            cols_ads = ["link", "addr", "baths", "attrs", "datetime_scr"]
+            cols_ads = ["datetime_scr", "link", "addr", "baths", "attrs"]
             if self.body:
                 cols_ads.append("body")
             data_ads = []
@@ -129,24 +136,26 @@ class CLSearch:
                 self.url = link
                 self.__navigate()
                 dta_ad = [
+                    self.__get_datetime(),
                     self.url,
                     self.__get_info_from("div.mapaddress")[0],
                     self.__get_info_from(".shared-line-bubble:nth-child(1)",
                                          pat=bw_rgx.format("/ ", "Ba"))[0],
                     self.__get_info_from(".attrgroup:nth-child(3) span")[0],
-                    self.__get_datetime()
                     ]
                 if self.body:
-                    dta_ad.append(
-                        self.__get_info_from("#postingbody")[0]
-                        )
+                    dta_ad.append(self.__get_info_from("#postingbody")[0])
+                # add ad data to final dataset
                 data_ads.append(dta_ad)
             df_ads = pd.DataFrame(data_ads, columns=cols_ads)
             df_pg = pd.merge(df_pg, df_ads, how="left", on="link")
         else:
             df_pg["datetime_scr"] = self.__get_datetime()
-        # append page"s DataFrame to instance"s `data` list
+        # append page's DataFrame to instance's `data` list
         self.data.append(df_pg)
+        # add `post_id`s of not-yet-scraped ads to set of all scraped ads
+        for pid in df_pg.post_id:
+            self.__post_ids.add(pid)
 
     def __find_next_page(self):
         """Find link to next results page.
@@ -214,18 +223,14 @@ class CLSearch:
     # data methods
 
     def __clean_data(self):
-        """Combine and clean scraped data.
-
-        `data` attribute is a list of DataFrames, one for each page of search
-        results. Concatenate them into one big DF. Convert certain variables to
-        numeric.
-        """
+        """Combine and clean scraped data."""
+        # `data` attribute is a list of DataFrames, one for each page of search
+        # results. Concatenate them into one big DF.
         self.data = pd.concat(self.data)
         self.data["rent"].replace(regex=r"\$", value="", inplace=True)
+        # convert certain variables to numeric
         num = {"rent", "beds", "sqft", "baths"}
-        num = list(
-            num.intersection(self.data.columns)
-            )
+        num = list(num.intersection(self.data.columns))
         self.data[num] = self.data[num].apply(pd.to_numeric, errors="coerce")
         # rearrange columns
         cols_1st = ["post_id", "datetime_scr"]

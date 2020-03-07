@@ -35,6 +35,11 @@ print(c2.data)
 
 ## Changelog
 
+2020.3.6.9001
+
+* Scraper now removes duplicate ads and avoids unnecessary requests. `post_id`
+is now the primary key in `CLSearch.data`.
+
 2020.3.6.1
 
 * Scraper now gets ads' post IDs from ad URLs. Before, a deep scrape was
