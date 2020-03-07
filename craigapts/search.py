@@ -234,8 +234,9 @@ class CLSearch:
 
     @staticmethod
     def __get_datetime():
-        return datetime.now().strftime("%Y-%m-%d %H:%M")
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == "__main__":
-    pass
+    s = CLSearch(geo='newjersey', query="'no section 8'")
+    df = s.data

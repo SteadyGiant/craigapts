@@ -42,6 +42,9 @@ required to get post IDs.
 
 * Data columns are rearranged so `post_id` and `datetime_scr` appear first.
 
+* `datatime_scr` now contains seconds, so it will differ across pages if
+`deep=False` or across ads if `deep=True`.
+
 2020.2.23.1
 
 * First release.
