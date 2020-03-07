@@ -11,7 +11,7 @@ from random import uniform
 from re import findall
 from requests import get
 from requests.exceptions import RequestException
-from sys import exit
+import sys
 from time import sleep
 
 
@@ -33,7 +33,8 @@ class CLSearch:
             available geographies and their Craigslist aliases here:
             <link>
         `query`: str, default ""
-            Words for text search. Put exact phrases in quotes.
+            Words for text search. Exact phrases must be surrounded by
+            "double" quotes. 'Single' quotes will not work.
         `deep`: bool, default False
             Navigate to each individual ad and scrape the following additional
             variables: Address, bathroom count, attributes (pet-friendly, etc),
@@ -44,7 +45,7 @@ class CLSearch:
             memory footprint.
 
     Example:
-        c1 = CLSearch(geo="sfbay", query="'no section 8'")
+        c1 = CLSearch(geo="newjersey", query='"no section 8"')
         print(c1.data)
     """
 
@@ -63,12 +64,25 @@ class CLSearch:
         self.__post_ids = set()
         self.data = []
         self.next_page_url = self.__build_url(
-            f"/search/apa?query={query}&bundleDuplicates=1")
+            # FIXME
+            # Allow user to specify availability & open house dates. For now
+            # they're hard-coded to include all dates.
+            # FIXME
+            # Really should allow user to specify all CL search options:
+            # Price range, ZIP code, beds, baths, etc.
+            ("/search/apa{}&bundleDuplicates=1&availabilityMode=0"
+             "&sale_date=all+dates").format(
+                 # NOTE: "?query" _must_ come after "apa" & begin w/ "?"
+                f"?query={query}" if query else ""
+                )
+            )
 
         # start scraper
         self.__scrape_all_pages()
 
-    # scraping methods
+    ########################
+    ### Scraping Methods ###
+    ########################
 
     def __scrape_all_pages(self):
         """Drive the scraper.
@@ -80,7 +94,7 @@ class CLSearch:
             self.__goto_next_page()
             self.__scrape_page()
             n += 1
-        print(f"Finished scraping {n} pages of results.")
+        print(f"Finished scraping {n} pages of results.\n")
         self.__clean_data()
 
     def __scrape_page(self):
@@ -192,7 +206,9 @@ class CLSearch:
         info = [None if i == "" else i for i in info]
         return info or [None]
 
-    # navigation methods
+    ##########################
+    ### Navigation Methods ###
+    ##########################
 
     def __goto_next_page(self):
         """Go to next results page."""
@@ -209,7 +225,7 @@ class CLSearch:
         try:
             r = get(self.url)
         except RequestException as e:
-            exit(f"Error when requesting {self.url} : {str(e)}")
+            sys.exit(f"Error when requesting {self.url} : {str(e)}")
         else:
             print(f"Parsing {self.url}\n")
             self.reqc = r.content
@@ -220,7 +236,9 @@ class CLSearch:
         """Build URL for search results from template."""
         return f"https://{self.geo}.craigslist.org{suffix}"
 
-    # data methods
+    #####################
+    ### Other Methods ###
+    #####################
 
     def __clean_data(self):
         """Combine and clean scraped data."""

@@ -22,7 +22,7 @@ pip install git+https://gitlab.com/everetr/craigapts.git
 from craigapts import CLSearch
 
 GEO   = "newjersey"
-QUERY = "'no section 8'"
+QUERY = '"no section 8"'  # exact phrases must be within "double quotes"
 
 # get basic data available on search result pages
 c1 = CLSearch(GEO, QUERY)
@@ -33,29 +33,10 @@ c2 = CLSearch(GEO, QUERY, deep=True)
 print(c2.data)
 ```
 
-## Changelog
+## CHANGELOG
 
-2020.3.6.9001
-
-* Scraper now removes duplicate ads and avoids unnecessary requests. `post_id`
-is now the primary key in `CLSearch.data`.
-
-2020.3.6.1
-
-* Scraper now gets ads' post IDs from ad URLs. Before, a deep scrape was
-required to get post IDs.
-
-* Data columns are rearranged so `post_id` and `datetime_scr` appear first.
-
-* `datatime_scr` now contains seconds, so it will differ across pages if
-`deep=False` or across ads if `deep=True`.
-
-2020.2.23.1
-
-* First release.
+See [NEWS.md](NEWS.md).
 
 ## TODO
 
-* Replace `requests` dependency with `urllib3`? Because minimalism.
-* Let user specify which variables, how many pages, and how many ads to scrape
-* CLI
+See [TODO.md](TODO.md).
