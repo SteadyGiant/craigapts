@@ -238,5 +238,4 @@ class CLSearch:
 
 
 if __name__ == "__main__":
-    s = CLSearch(geo='newjersey', query="'no section 8'")
-    df = s.data
+    pass
