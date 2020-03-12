@@ -1,5 +1,10 @@
 # NEWS
 
+2020.3.7.9000
+
+* ["Private"](https://docs.python.org/3/tutorial/classes.html#private-variables)
+methods (e.g., `CLSearch._get_datetime()`) can now be accessed.
+
 2020.3.7.1
 
 * Scraper now removes duplicate ads and avoids unnecessary requests. `post_id`

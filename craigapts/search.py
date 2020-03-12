@@ -61,9 +61,9 @@ class CLSearch:
         self.url = None
         self.reqc = None
         self.soup = None
-        self.__post_ids = set()
+        self._post_ids = set()
         self.data = []
-        self.next_page_url = self.__build_url(
+        self.next_page_url = self._build_url(
             # FIXME
             # Allow user to specify availability & open house dates. For now
             # they're hard-coded to include all dates.
@@ -78,26 +78,26 @@ class CLSearch:
             )
 
         # start scraper
-        self.__scrape_all_pages()
+        self._scrape_all_pages()
 
     ########################
     ### Scraping Methods ###
     ########################
 
-    def __scrape_all_pages(self):
+    def _scrape_all_pages(self):
         """Drive the scraper.
 
         Navigates to and scrapes all pages of search results.
         """
         n = 0
         while self.next_page_url:
-            self.__goto_next_page()
-            self.__scrape_page()
+            self._goto_next_page()
+            self._scrape_page()
             n += 1
         print(f"Finished scraping {n} pages of results.\n")
-        self.__clean_data()
+        self._clean_data()
 
-    def __scrape_page(self):
+    def _scrape_page(self):
         """Scrape a page of search results.
 
         Stores all scraped data in a DataFrame and appends it to the `data`
@@ -119,16 +119,16 @@ class CLSearch:
 
         # scrape data available on current results page
         df_pg = pd.DataFrame({
-            "date": self.__get_info_from(".result-date"),
-            "title": self.__get_info_from(".hdrlnk"),
-            "link": self.__get_info_from(".hdrlnk", attr="href"),
-            "rent": self.__get_info_from(".result-meta .result-price"),
-            "beds": self.__get_info_from(".result-meta",
-                                         pat=bw_rgx.format(" ", "br ")),
-            "sqft": self.__get_info_from(".result-meta",
-                                         pat=bw_rgx.format(" ", "ft2 ")),
-            "hood": self.__get_info_from(".result-meta",
-                                         pat=bw_rgx.format(r"\(", r"\)"))
+            "date": self._get_info_from(".result-date"),
+            "title": self._get_info_from(".hdrlnk"),
+            "link": self._get_info_from(".hdrlnk", attr="href"),
+            "rent": self._get_info_from(".result-meta .result-price"),
+            "beds": self._get_info_from(".result-meta",
+                                        pat=bw_rgx.format(" ", "br ")),
+            "sqft": self._get_info_from(".result-meta",
+                                        pat=bw_rgx.format(" ", "ft2 ")),
+            "hood": self._get_info_from(".result-meta",
+                                        pat=bw_rgx.format(r"\(", r"\)"))
             })[:n_ads]
         df_pg["post_id"] = pd.Series(
             findall("\\d+(?=\\.html)", L)[0]
@@ -137,7 +137,7 @@ class CLSearch:
         # Remove ads already scraped.
         # Even adding `bundleDuplicates=1` to the search URLs won't eliminate
         # all dupes.
-        df_pg = df_pg[~df_pg.post_id.isin(self.__post_ids)]
+        df_pg = df_pg[~df_pg.post_id.isin(self._post_ids)]
 
         if self.deep:
             # attrs: misc attributes listed on the side of an ad
@@ -148,37 +148,37 @@ class CLSearch:
             # navigate to & scrape each ad on current results page
             for link in df_pg["link"]:
                 self.url = link
-                self.__navigate()
+                self._navigate()
                 dta_ad = [
-                    self.__get_datetime(),
+                    self._get_datetime(),
                     self.url,
-                    self.__get_info_from("div.mapaddress")[0],
-                    self.__get_info_from(".shared-line-bubble:nth-child(1)",
-                                         pat=bw_rgx.format("/ ", "Ba"))[0],
-                    self.__get_info_from(".attrgroup:nth-child(3) span")[0],
+                    self._get_info_from("div.mapaddress")[0],
+                    self._get_info_from(".shared-line-bubble:nth-child(1)",
+                                        pat=bw_rgx.format("/ ", "Ba"))[0],
+                    self._get_info_from(".attrgroup:nth-child(3) span")[0],
                     ]
                 if self.body:
-                    dta_ad.append(self.__get_info_from("#postingbody")[0])
+                    dta_ad.append(self._get_info_from("#postingbody")[0])
                 # add ad data to final dataset
                 data_ads.append(dta_ad)
             df_ads = pd.DataFrame(data_ads, columns=cols_ads)
             df_pg = pd.merge(df_pg, df_ads, how="left", on="link")
         else:
-            df_pg["datetime_scr"] = self.__get_datetime()
+            df_pg["datetime_scr"] = self._get_datetime()
         # append page's DataFrame to instance's `data` list
         self.data.append(df_pg)
         # add `post_id`s of not-yet-scraped ads to set of all scraped ads
         for pid in df_pg.post_id:
-            self.__post_ids.add(pid)
+            self._post_ids.add(pid)
 
-    def __find_next_page(self):
+    def _find_next_page(self):
         """Find link to next results page.
 
         Scrapes URL for the next page of search results from the "Next" button,
         & sets the `next_page_url` attribute to that.
         """
         try:
-            sfx = self.__get_info_from(
+            sfx = self._get_info_from(
                 # This is prob the most fragile CSS selector of the bunch.
                 # Expect it to change frequently.
                 ("div.search-legend:nth-child(3) > div:nth-child(3)"
@@ -188,9 +188,9 @@ class CLSearch:
         except KeyError or IndexError:
             sfx = ""
         finally:
-            self.next_page_url = self.__build_url(sfx) if sfx else None
+            self.next_page_url = self._build_url(sfx) if sfx else None
 
-    def __get_info_from(self, css, attr=None, pat=".*"):
+    def _get_info_from(self, css, attr=None, pat=".*"):
         """Scrape HTML nodes.
 
         Scrapes data from nodes identified by given CSS selector, HTML
@@ -210,13 +210,13 @@ class CLSearch:
     ### Navigation Methods ###
     ##########################
 
-    def __goto_next_page(self):
+    def _goto_next_page(self):
         """Go to next results page."""
         self.url = self.next_page_url
-        self.__navigate()
-        self.__find_next_page()
+        self._navigate()
+        self._find_next_page()
 
-    def __navigate(self):
+    def _navigate(self):
         """Navigate the scraper.
 
         Gets content from webpage at `url` attribute. Waits a few seconds b/w
@@ -232,7 +232,7 @@ class CLSearch:
             self.soup = BeautifulSoup(self.reqc, "html.parser")
             sleep(1 + uniform(1, 5))  # be polite
 
-    def __build_url(self, suffix):
+    def _build_url(self, suffix):
         """Build URL for search results from template."""
         return f"https://{self.geo}.craigslist.org{suffix}"
 
@@ -240,7 +240,7 @@ class CLSearch:
     ### Other Methods ###
     #####################
 
-    def __clean_data(self):
+    def _clean_data(self):
         """Combine and clean scraped data."""
         # `data` attribute is a list of DataFrames, one for each page of search
         # results. Concatenate them into one big DF.
@@ -256,7 +256,7 @@ class CLSearch:
         self.data = self.data[cols_1st + cols_last]
 
     @staticmethod
-    def __get_datetime():
+    def _get_datetime():
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
