@@ -190,7 +190,7 @@ class CLSearch:
         finally:
             self.next_page_url = self._build_url(sfx) if sfx else None
 
-    def _get_info_from(self, css, attr=None, pat=".*"):
+    def _get_info_from(self, css, attr=None, pat=None):
         """Scrape HTML nodes.
 
         Scrapes data from nodes identified by given CSS selector, HTML
@@ -200,8 +200,11 @@ class CLSearch:
             A list, where each element contains info from a node.
         """
         nodes = self.soup.select(css)
-        info = [n.text if attr is None else n[attr] for n in nodes]
-        if pat != ".*":
+        if attr:
+            info = [n[attr] for n in nodes]
+        else:
+            info = [n.text for n in nodes]
+        if pat:
             info = ["".join(findall(pat, i)) for i in info]
         info = [None if i == "" else i for i in info]
         return info or [None]
